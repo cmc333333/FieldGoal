@@ -23,6 +23,7 @@ Physics zyPhysics;  //  side
 Body zyBall;
 
 int crateSize = 80;
+float ballSize = .2;  //  in meters
 
 PImage crateImage;
 
@@ -36,10 +37,10 @@ void setup() {
   crateImage = loadImage("crate.jpeg");
   imageMode(CENTER);
 
-  xzPhysics = new Physics(this, width, 100*20*3, 0, 0, width*2, 100*20*3*2,
-                          width, 100*20*3, 100);
-  zyPhysics = new Physics(this, 100*20*3, height, 0, -10, 100*20*3*2, height*2,
-                          100*20*3, height, 100);
+  xzPhysics = new Physics(this, width, height, 0, 0, width*2, height*2,
+                          width, height, 20);
+  zyPhysics = new Physics(this, width/2, height, 0, -10, width, height*2,
+                          width/2, height, 15);
   // this overrides the debug render of the physics engine
   // with the method myCustomRenderer
   // comment out to use the debug renderer 
@@ -52,8 +53,14 @@ void setup() {
   // set up the objects
   // Rect parameters are the top left 
   // and bottom right corners
-  xzBall = xzPhysics.createRect(200, height-crateSize, 200+crateSize, height);
-  zyBall = zyPhysics.createRect(400, height-crateSize, 400+crateSize, height);
+  xzBall = xzPhysics.createRect(width/2 - ballSize*10,
+                                height - ballSize*20,
+                                width/2 + ballSize*10,
+                                height);
+  zyBall = zyPhysics.createRect(15 - 7*ballSize,
+                                height - ballSize*15,
+                                15 + 7*ballSize,
+                                height);
 
   maxim = new Maxim(this);
 
@@ -74,7 +81,7 @@ void draw() {
   Vec2 zyPos = zyPhysics.worldToScreen(zyBall.getWorldCenter());
 
   pushMatrix();
-  translate(xzPos.x + 200, zyPos.y - 200, xzPos.y - 400);
+  translate(xzPos.x, zyPos.y - 200, xzPos.y - 400);
   image(crateImage, 0, 0, crateSize, crateSize);
   popMatrix();
 
@@ -88,7 +95,7 @@ void draw() {
 void mouseClicked()
 {
   Vec2 xzImpact = xzBall.getWorldCenter().sub(new Vec2(0, crateSize/2));
-  xzBall.applyImpulse(new Vec2(0, 30), xzImpact);
+  xzBall.applyImpulse(new Vec2(0, 10), xzImpact);
 
   Vec2 zyImpact = xzBall.getWorldCenter().sub(new Vec2(crateSize/2, -crateSize/4));
   zyBall.applyImpulse(new Vec2(10, 0), zyImpact);
