@@ -20,7 +20,7 @@ AudioPlayer[] crateSounds;
 
 
 Physics physics; // The physics handler: we'll see more of this later
-// rigid bodies for the droid and two crates
+
 Body droid;
 Body [] crates;
 // the start point of the catapult 
@@ -31,18 +31,17 @@ CollisionDetector detector;
 int crateSize = 80;
 int ballSize = 60;
 
-PImage crateImage, ballImage, tip;
+PImage crateImage, ballImage;
 
 int score = 0;
 
 boolean dragging = false;
 
 void setup() {
-  size(1024,768);
-  frameRate(60);
+  size(1024, 700);
+  frameRate(30);
 
 
-  tip = loadImage("scrapyard2.jpg");
   crateImage = loadImage("crate.jpeg");
   ballImage = loadImage("tux_droid.png");
   imageMode(CENTER);
@@ -112,7 +111,7 @@ void setup() {
 }
 
 void draw() {
-  image(tip, width/2, height/2, width, height);
+  background(100); 
 
 
   // we can call the renderer here if we want 
@@ -123,23 +122,20 @@ void draw() {
   text("Score: " + score, 20, 20);
 }
 
-void mouseDragged()
-{
-  // tie the droid to the mouse while we are dragging
-  dragging = true;
-  droid.setPosition(physics.screenToWorld(new Vec2(mouseX, mouseY)));
-}
-
 // when we release the mouse, apply an impulse based 
 // on the distance from the droid to the catapult
 void mouseReleased()
 {
-  dragging = false;
-  Vec2 impulse = new Vec2();
-  impulse.set(startPoint);
-  impulse = impulse.sub(droid.getWorldCenter());
-  impulse = impulse.mul(50);
-  droid.applyImpulse(impulse, droid.getWorldCenter());
+  for (Body crate: crates) {
+    Vec2 pos = physics.worldToScreen(crate.getWorldCenter());
+    if (mouseX >= pos.x - crateSize/2 && mouseX <= pos.x + crateSize/2
+        && mouseY >= pos.y - crateSize/2 && mouseY <= pos.y + crateSize/2) {
+      Vec2 impulse = crate.getWorldCenter();
+      impulse = impulse.sub(physics.screenToWorld(new Vec2(mouseX, mouseY + 10)));
+      impulse = impulse.mul(100);
+      crate.applyImpulse(impulse, crate.getWorldCenter());
+    }
+  }
 }
 
 // this function renders the physics scene.
@@ -222,4 +218,5 @@ void collision(Body b1, Body b2, float impulse)
    }
   //
 }
+
 
