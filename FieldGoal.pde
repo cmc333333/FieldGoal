@@ -6,7 +6,6 @@
 import org.jbox2d.util.nonconvex.*;
 import org.jbox2d.dynamics.contacts.*;
 import org.jbox2d.testbed.*;
-import org.jbox2d.collision.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.joints.*;
 import org.jbox2d.p5.*;
@@ -21,12 +20,9 @@ AudioPlayer[] crateSounds;
 
 Physics physics; // The physics handler: we'll see more of this later
 
-Body droid;
 Body [] crates;
 // the start point of the catapult 
 Vec2 startPoint;
-// a handler that will detect collisions
-CollisionDetector detector; 
 
 int crateSize = 80;
 int ballSize = 60;
@@ -86,12 +82,6 @@ void setup() {
   // physics engine (10 pixels to a meter by default)
   startPoint = physics.screenToWorld(startPoint);
 
-  // circle parameters are center x,y and radius
-  droid = physics.createCircle(width/2, -100, ballSize/2);
-
-  // sets up the collision callbacks
-  detector = new CollisionDetector (physics, this);
-
   maxim = new Maxim(this);
   droidSound = maxim.loadFile("droid.wav");
   wallSound = maxim.loadFile("wall.wav");
@@ -124,7 +114,7 @@ void draw() {
 
 // when we release the mouse, apply an impulse based 
 // on the distance from the droid to the catapult
-void mouseReleased()
+void mouseClicked()
 {
   for (Body crate: crates) {
     Vec2 pos = physics.worldToScreen(crate.getWorldCenter());
@@ -134,6 +124,10 @@ void mouseReleased()
       impulse = impulse.sub(physics.screenToWorld(new Vec2(mouseX, mouseY + 10)));
       impulse = impulse.mul(100);
       crate.applyImpulse(impulse, crate.getWorldCenter());
+
+      crateSounds[0].cue(0);
+      crateSounds[0].speed(0.5);
+      crateSounds[0].play();
     }
   }
 }
@@ -153,14 +147,6 @@ void myCustomRenderer(World world) {
   // the physics engine and then apply a translate 
   // and rotate to the image using those values
   // (then do the same for the crates)
-  Vec2 screenDroidPos = physics.worldToScreen(droid.getWorldCenter());
-  float droidAngle = physics.getAngle(droid);
-  pushMatrix();
-  translate(screenDroidPos.x, screenDroidPos.y);
-  rotate(-radians(droidAngle));
-  image(ballImage, 0, 0, ballSize, ballSize);
-  popMatrix();
-
 
   for (int i = 0; i < crates.length; i++)
   {
@@ -174,49 +160,4 @@ void myCustomRenderer(World world) {
     popMatrix();
   }
 
-  if (dragging)
-  {
-    strokeWeight(2);
-    line(screenDroidPos.x, screenDroidPos.y, screenStartPoint.x, screenStartPoint.y);
-  }
 }
-
-// This method gets called automatically when 
-// there is a collision
-void collision(Body b1, Body b2, float impulse)
-{
-  if ((b1 == droid && b2.getMass() > 0)
-    || (b2 == droid && b1.getMass() > 0))
-  {
-    if (impulse > 1.0)
-    {
-      score += 1;
-    }
-  }
-
-  // test for droid
-  if (b1.getMass() == 0 || b2.getMass() == 0) {// b1 or b2 are walls
-    // wall sound
-    //println("wall speed "+(impulse/100));
-    wallSound.cue(0);
-    wallSound.speed(impulse / 100);// 
-    wallSound.play();
-  }
-  if (b1 == droid || b2 == droid) { // b1 or b2 are the droid
-    // droid sound
-    println("droid "+(impulse/10));
-    droidSound.cue(0);
-    droidSound.speed(impulse / 10);
-    droidSound.play();
-  }
-   for (int i=0;i<crates.length;i++){
-     if (b1 == crates[i] || b2 == crates[i]){// its a crate
-         crateSounds[i].cue(0);
-         crateSounds[i].speed(0.5 + (impulse / 10000));// 10000 as the crates move slower??
-         crateSounds[i].play();
-     }
-   }
-  //
-}
-
-
