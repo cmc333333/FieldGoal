@@ -14,13 +14,14 @@ import org.jbox2d.dynamics.*;
 // audio stuff
 
 Maxim maxim;
-AudioPlayer droidSound, wallSound;
-AudioPlayer[] crateSounds;
+AudioPlayer crateSound;
 
 
 Physics physics; // The physics handler: we'll see more of this later
 
 Body [] crates;
+boolean [] kicked;
+int [] dist;
 // the start point of the catapult 
 Vec2 startPoint;
 
@@ -67,6 +68,8 @@ void setup() {
   // set up the objects
   // Rect parameters are the top left 
   // and bottom right corners
+  kicked = new boolean[7];
+  dist = new int[7];
   crates = new Body[7];
   crates[0] = physics.createRect(600, height-crateSize, 600+crateSize, height);
   crates[1] = physics.createRect(600, height-2*crateSize, 600+crateSize, height-crateSize);
@@ -83,20 +86,10 @@ void setup() {
   startPoint = physics.screenToWorld(startPoint);
 
   maxim = new Maxim(this);
-  droidSound = maxim.loadFile("droid.wav");
-  wallSound = maxim.loadFile("wall.wav");
 
-  droidSound.setLooping(false);
-  droidSound.volume(1.0);
-  wallSound.setLooping(false);
-  wallSound.volume(1.0);
-  // now an array of crate sounds
-  crateSounds = new AudioPlayer[crates.length];
-  for (int i=0;i<crateSounds.length;i++){
-    crateSounds[i] = maxim.loadFile("crate2.wav");
-    crateSounds[i].setLooping(false);
-    crateSounds[i].volume(1);
-  }
+  crateSound = maxim.loadFile("crate2.wav");
+  crateSound.setLooping(false);
+  crateSound.volume(1);
 
 }
 
@@ -110,24 +103,32 @@ void draw() {
 
   fill(0);
   text("Score: " + score, 20, 20);
+  for (int i = 0; i < crates.length; i++) {
+    if (kicked[i] && dist[i] < crateSize) {
+      dist[i] += 1;
+    }
+  }
 }
 
 // when we release the mouse, apply an impulse based 
 // on the distance from the droid to the catapult
 void mouseClicked()
 {
-  for (Body crate: crates) {
+  for (int i = 0; i < crates.length; i++) {
+    Body crate = crates[i];
     Vec2 pos = physics.worldToScreen(crate.getWorldCenter());
-    if (mouseX >= pos.x - crateSize/2 && mouseX <= pos.x + crateSize/2
+    if (!kicked[i]
+        && mouseX >= pos.x - crateSize/2 && mouseX <= pos.x + crateSize/2
         && mouseY >= pos.y - crateSize/2 && mouseY <= pos.y + crateSize/2) {
       Vec2 impulse = crate.getWorldCenter();
       impulse = impulse.sub(physics.screenToWorld(new Vec2(mouseX, mouseY + 10)));
       impulse = impulse.mul(100);
       crate.applyImpulse(impulse, crate.getWorldCenter());
 
-      crateSounds[0].cue(0);
-      crateSounds[0].speed(0.5);
-      crateSounds[0].play();
+      crateSound.cue(0);
+      crateSound.speed(0.5);
+      crateSound.play();
+      kicked[i] = true;
     }
   }
 }
@@ -156,7 +157,7 @@ void myCustomRenderer(World world) {
     pushMatrix();
     translate(cratePos.x, cratePos.y);
     rotate(-crateAngle);
-    image(crateImage, 0, 0, crateSize, crateSize);
+    image(crateImage, 0, 0, crateSize - dist[i], crateSize - dist[i]);
     popMatrix();
   }
 
