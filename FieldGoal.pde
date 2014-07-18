@@ -85,12 +85,15 @@ void draw() {
 void mouseClicked()
 {
   if (!kicked) {
-    Vec2 click = new Vec2(mouseX - width/2, mouseY - 590).mul(1.0/14);
-    Vec2 xzImpact = xzBall.getWorldCenter().sub(new Vec2(-click.x, ballSize/2));
-    xzBall.applyImpulse(new Vec2(-click.x, 5), xzImpact);
+    float fuzzyX = mouseX + random(-15, 15);
+    float fuzzyY = mouseY + random(-10, 10);
+    Vec2 click = new Vec2(fuzzyX - width/2, fuzzyY - 590).mul(1.0/14);
+    Vec2 xzImpact = xzBall.getWorldCenter().sub(
+        new Vec2(-click.x * 0.2, ballSize/2));
+    xzBall.applyImpulse(new Vec2(0, 5), xzImpact);
 
     Vec2 zyImpact = xzBall.getWorldCenter().sub(new Vec2(ballSize/2, -click.y));
-    zyBall.applyImpulse(new Vec2(8, click.y), zyImpact);
+    zyBall.applyImpulse(new Vec2(8, 0), zyImpact);
     kicked = true;
   }
 }
@@ -152,10 +155,10 @@ void drawGoalPost()
 
     noStroke();
     fill(200);
-    rect(-2, -42, 4, 42);  // base
-    rect(-20, -46, 40, 4); // crossbar
-    rect(-20, -80, 4, 38);  // left
-    rect(16, -80, 4, 38);  // left
+    rect(-2, -42, 4, 70);  // base
+    rect(-30, -46, 60, 4); // crossbar
+    rect(-30, -80, 4, 38);  // left
+    rect(26, -80, 4, 38);  // right
 
   popMatrix();
 }
@@ -184,7 +187,7 @@ void checkPoint(double x, double y, double z)
   y = y - height;
   z = z - (height/2) / tan(PI/6) + 100;
 
-  if (!scored && -16 < x && x < 16 && y < -46 && 0 < z) {
+  if (!scored && -26 < x && x < 26 && y < -46 && 0 < z) {
     score += 1;
     scored = true;
   }
