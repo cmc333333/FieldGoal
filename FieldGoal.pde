@@ -14,7 +14,9 @@ import org.jbox2d.dynamics.*;
 // audio stuff
 
 Maxim maxim;
-AudioPlayer crateSound;
+AudioPlayer kickSound;
+AudioPlayer cheerSound;
+AudioPlayer jeerSound;
 
 Physics xzPhysics;  //  top-down
 Body xzBall;
@@ -59,9 +61,15 @@ void setup() {
 
   maxim = new Maxim(this);
 
-  crateSound = maxim.loadFile("crate2.wav");
-  crateSound.setLooping(false);
-  crateSound.volume(1);
+  kickSound = maxim.loadFile("crate2.wav");
+  kickSound.speed(0.5);
+  kickSound.setLooping(false);
+
+  cheerSound = maxim.loadFile("130326__dianadesim__clapping-and-yelling.wav");
+  cheerSound.setLooping(false);
+
+  jeerSound = maxim.loadFile("124996__phmiller42__aww.wav");
+  jeerSound.setLooping(false);
 }
 
 void draw() {
@@ -85,7 +93,7 @@ void draw() {
 void mouseClicked()
 {
   if (!kicked) {
-    float fuzzyX = mouseX + random(-15, 15);
+    float fuzzyX = mouseX + random(-16, 16);
     float fuzzyY = mouseY + random(-10, 10);
     Vec2 click = new Vec2(fuzzyX - width/2, fuzzyY - 590).mul(1.0/14);
     Vec2 xzImpact = xzBall.getWorldCenter().sub(
@@ -95,6 +103,8 @@ void mouseClicked()
     Vec2 zyImpact = xzBall.getWorldCenter().sub(new Vec2(ballSize/2, -click.y));
     zyBall.applyImpulse(new Vec2(8, 0), zyImpact);
     kicked = true;
+    kickSound.cue(0);
+    kickSound.play();
   }
 }
 
@@ -190,5 +200,11 @@ void checkPoint(double x, double y, double z)
   if (!scored && -26 < x && x < 26 && y < -46 && 0 < z) {
     score += 1;
     scored = true;
+
+    cheerSound.cue(0);
+    cheerSound.play();
+  } else if (0 < z && !jeerSound.isPlaying()) {
+    jeerSound.cue(0);
+    jeerSound.play();
   }
 }
