@@ -72,19 +72,55 @@ void setup() {
 void draw() {
   background(100); 
 
-
-  // we can call the renderer here if we want 
-  // to run both our renderer and the debug renderer
-  //myCustomRenderer(physics.getWorld());
   Vec2 xzPos = xzPhysics.worldToScreen(xzBall.getWorldCenter());
   Vec2 zyPos = zyPhysics.worldToScreen(zyBall.getWorldCenter());
 
   pushMatrix();
+
   translate(xzPos.x, height/2 + 14*2.25 - height + zyPos.y, 
             545 - zyPos.x);
   rotateX(radians(zyPhysics.getAngle(zyBall)));
   rotateY(radians(xzPhysics.getAngle(xzBall)));
-  box(7);
+  beginShape(QUADS);
+  texture(crateImage);
+  noStroke();
+
+  // +Z "front" face
+  vertex(-4, -4,  4, 0, 0);
+  vertex( 4, -4,  4, 600, 0);
+  vertex( 4,  4,  4, 600, 600);
+  vertex(-4,  4,  4, 0, 600);
+
+  // -Z "back" face
+  vertex( 4, -4, -4, 0, 0);
+  vertex(-4, -4, -4, 600, 0);
+  vertex(-4,  4, -4, 600, 600);
+  vertex( 4,  4, -4, 0, 600);
+
+  // +Y "bottom" face
+  vertex(-4,  4,  4, 0, 0);
+  vertex( 4,  4,  4, 600, 0);
+  vertex( 4,  4, -4, 600, 600);
+  vertex(-4,  4, -4, 0, 600);
+
+  // -Y "top" face
+  vertex(-4, -4, -4, 0, 0);
+  vertex( 4, -4, -4, 600, 0);
+  vertex( 4, -4,  4, 600, 600);
+  vertex(-4, -4,  4, 0, 600);
+
+  // +X "right" face
+  vertex( 4, -4,  4, 0, 0);
+  vertex( 4, -4, -4, 600, 0);
+  vertex( 4,  4, -4, 600, 600);
+  vertex( 4,  4,  4, 0, 600);
+
+  // -X "left" face
+  vertex(-4, -4, -4, 0, 0);
+  vertex(-4, -4,  4, 600, 0);
+  vertex(-4,  4,  4, 600, 600);
+  vertex(-4,  4, -4, 0, 600);
+  endShape();
   popMatrix();
 
 
@@ -110,34 +146,8 @@ void mouseClicked()
 {
   Vec2 click = new Vec2(mouseX - width/2, mouseY - 590).mul(1.0/14);
   Vec2 xzImpact = xzBall.getWorldCenter().sub(new Vec2(click.x, ballSize/2));
-  xzBall.applyImpulse(new Vec2(-click.x, 8), xzImpact);
+  xzBall.applyImpulse(new Vec2(-click.x, 5), xzImpact);
 
   Vec2 zyImpact = xzBall.getWorldCenter().sub(new Vec2(ballSize/2, -click.y));
   zyBall.applyImpulse(new Vec2(8, click.y), zyImpact);
-}
-
-// this function renders the physics scene.
-// this can either be called automatically from the physics
-// engine if we enable it as a custom renderer or 
-// we can call it from draw
-void myCustomRenderer(World world) {
-  // get the droids position and rotation from
-  // the physics engine and then apply a translate 
-  // and rotate to the image using those values
-  // (then do the same for the crates)
-
-  /*
-  for (int i = 0; i < crates.length; i++)
-  {
-    Vec2 worldCenter = crates[i].getWorldCenter();
-    Vec2 cratePos = physics.worldToScreen(worldCenter);
-    float crateAngle = physics.getAngle(crates[i]);
-    pushMatrix();
-    translate(cratePos.x, cratePos.y, -5 * dist[i]);
-    rotate(-crateAngle);
-    image(crateImage, 0, 0, crateSize, crateSize);
-    popMatrix();
-  }
-  */
-
 }
