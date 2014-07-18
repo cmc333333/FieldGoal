@@ -16,18 +16,18 @@ import org.jbox2d.dynamics.*;
 Maxim maxim;
 AudioPlayer crateSound;
 
-
 Physics xzPhysics;  //  top-down
 Body xzBall;
 Physics zyPhysics;  //  side
 Body zyBall;
 
-int crateSize = 80;
 float ballSize = .2;  //  in meters
 
 PImage crateImage;
 
 int score = 0;
+boolean kicked = false;
+boolean scored = false;
 
 void setup() {
   size(700, 700, P3D);
@@ -41,11 +41,6 @@ void setup() {
                           width, height, 14);
   zyPhysics = new Physics(this, width, height, 0, -10, width*2, height*2,
                           width, height, 14);
-  // this overrides the debug render of the physics engine
-  // with the method myCustomRenderer
-  // comment out to use the debug renderer 
-  // (currently broken in JS)
-  //physics.setCustomRenderingMethod(this, "myCustomRenderer");
 
   xzPhysics.setDensity(10.0);
   zyPhysics.setDensity(10.0);
@@ -75,57 +70,98 @@ void draw() {
   Vec2 xzPos = xzPhysics.worldToScreen(xzBall.getWorldCenter());
   Vec2 zyPos = zyPhysics.worldToScreen(zyBall.getWorldCenter());
 
-  pushMatrix();
-
-  translate(xzPos.x, height/2 + 14*2.25 - height + zyPos.y, 
-            545 - zyPos.x);
-  rotateX(radians(zyPhysics.getAngle(zyBall)));
-  rotateY(radians(xzPhysics.getAngle(xzBall)));
-  beginShape(QUADS);
-  texture(crateImage);
-  noStroke();
-
-  // +Z "front" face
-  vertex(-4, -4,  4, 0, 0);
-  vertex( 4, -4,  4, 600, 0);
-  vertex( 4,  4,  4, 600, 600);
-  vertex(-4,  4,  4, 0, 600);
-
-  // -Z "back" face
-  vertex( 4, -4, -4, 0, 0);
-  vertex(-4, -4, -4, 600, 0);
-  vertex(-4,  4, -4, 600, 600);
-  vertex( 4,  4, -4, 0, 600);
-
-  // +Y "bottom" face
-  vertex(-4,  4,  4, 0, 0);
-  vertex( 4,  4,  4, 600, 0);
-  vertex( 4,  4, -4, 600, 600);
-  vertex(-4,  4, -4, 0, 600);
-
-  // -Y "top" face
-  vertex(-4, -4, -4, 0, 0);
-  vertex( 4, -4, -4, 600, 0);
-  vertex( 4, -4,  4, 600, 600);
-  vertex(-4, -4,  4, 0, 600);
-
-  // +X "right" face
-  vertex( 4, -4,  4, 0, 0);
-  vertex( 4, -4, -4, 600, 0);
-  vertex( 4,  4, -4, 600, 600);
-  vertex( 4,  4,  4, 0, 600);
-
-  // -X "left" face
-  vertex(-4, -4, -4, 0, 0);
-  vertex(-4, -4,  4, 600, 0);
-  vertex(-4,  4,  4, 600, 600);
-  vertex(-4,  4, -4, 0, 600);
-  endShape();
-  popMatrix();
-
+  drawGoalPost();
+  drawBall(xzPos, zyPos);
+  checkReset(xzPos, zyPos);
+  checkPoint(xzPos.x, zyPos.y, zyPos.x);
 
   fill(0);
-  text("Score: " + score, 20, 20);
+  textSize(32);
+  text("Score: " + score, 20, 50);
+}
+
+// when we release the mouse, apply an impulse based 
+// on the distance from the droid to the catapult
+void mouseClicked()
+{
+  if (!kicked) {
+    Vec2 click = new Vec2(mouseX - width/2, mouseY - 590).mul(1.0/14);
+    Vec2 xzImpact = xzBall.getWorldCenter().sub(new Vec2(-click.x, ballSize/2));
+    xzBall.applyImpulse(new Vec2(-click.x, 5), xzImpact);
+
+    Vec2 zyImpact = xzBall.getWorldCenter().sub(new Vec2(ballSize/2, -click.y));
+    zyBall.applyImpulse(new Vec2(8, click.y), zyImpact);
+    kicked = true;
+  }
+}
+
+void drawBall(Vec2 xzPos, Vec2 zyPos)
+{
+  pushMatrix();
+    translate(xzPos.x, height/2 + 14*2.25 - height + zyPos.y, 
+              545 - zyPos.x);
+    rotateX(radians(zyPhysics.getAngle(zyBall)));
+    rotateY(radians(xzPhysics.getAngle(xzBall)));
+    beginShape(QUADS);
+    texture(crateImage);
+    noStroke();
+
+    // +Z "front" face
+    vertex(-4, -4,  4, 0, 0);
+    vertex( 4, -4,  4, 600, 0);
+    vertex( 4,  4,  4, 600, 600);
+    vertex(-4,  4,  4, 0, 600);
+
+    // -Z "back" face
+    vertex( 4, -4, -4, 0, 0);
+    vertex(-4, -4, -4, 600, 0);
+    vertex(-4,  4, -4, 600, 600);
+    vertex( 4,  4, -4, 0, 600);
+
+    // +Y "bottom" face
+    vertex(-4,  4,  4, 0, 0);
+    vertex( 4,  4,  4, 600, 0);
+    vertex( 4,  4, -4, 600, 600);
+    vertex(-4,  4, -4, 0, 600);
+
+    // -Y "top" face
+    vertex(-4, -4, -4, 0, 0);
+    vertex( 4, -4, -4, 600, 0);
+    vertex( 4, -4,  4, 600, 600);
+    vertex(-4, -4,  4, 0, 600);
+
+    // +X "right" face
+    vertex( 4, -4,  4, 0, 0);
+    vertex( 4, -4, -4, 600, 0);
+    vertex( 4,  4, -4, 600, 600);
+    vertex( 4,  4,  4, 0, 600);
+
+    // -X "left" face
+    vertex(-4, -4, -4, 0, 0);
+    vertex(-4, -4,  4, 600, 0);
+    vertex(-4,  4,  4, 600, 600);
+    vertex(-4,  4, -4, 0, 600);
+    endShape();
+  popMatrix();
+}
+
+void drawGoalPost()
+{
+  pushMatrix();
+    translate(width/2, height/2, 100);
+
+    noStroke();
+    fill(200);
+    rect(-2, -42, 4, 42);  // base
+    rect(-20, -46, 40, 4); // crossbar
+    rect(-20, -80, 4, 38);  // left
+    rect(16, -80, 4, 38);  // left
+
+  popMatrix();
+}
+
+void checkReset(Vec2 xzPos, Vec2 zyPos)
+{
   if ((zyBall.isSleeping() && zyPos.x > 50) || xzPos.y < .05*width) {
     xzPhysics.removeBody(xzBall);
     zyPhysics.removeBody(zyBall);
@@ -137,17 +173,19 @@ void draw() {
                                   height - ballSize*14,
                                   14*ballSize,
                                   height);
+    kicked = false;
+    scored = false;
   }
 }
 
-// when we release the mouse, apply an impulse based 
-// on the distance from the droid to the catapult
-void mouseClicked()
+void checkPoint(double x, double y, double z)
 {
-  Vec2 click = new Vec2(mouseX - width/2, mouseY - 590).mul(1.0/14);
-  Vec2 xzImpact = xzBall.getWorldCenter().sub(new Vec2(click.x, ballSize/2));
-  xzBall.applyImpulse(new Vec2(-click.x, 5), xzImpact);
+  x = x - width/2;
+  y = y - height;
+  z = z - (height/2) / tan(PI/6) + 100;
 
-  Vec2 zyImpact = xzBall.getWorldCenter().sub(new Vec2(ballSize/2, -click.y));
-  zyBall.applyImpulse(new Vec2(8, click.y), zyImpact);
+  if (!scored && -16 < x && x < 16 && y < -46 && 0 < z) {
+    score += 1;
+    scored = true;
+  }
 }
