@@ -30,7 +30,7 @@ PImage crateImage;
 int score = 0;
 
 void setup() {
-  size(1024, 700, P3D);
+  size(700, 700, P3D);
   frameRate(30);
 
 
@@ -38,9 +38,9 @@ void setup() {
   imageMode(CENTER);
 
   xzPhysics = new Physics(this, width, height, 0, 0, width*2, height*2,
-                          width, height, 20);
-  zyPhysics = new Physics(this, width/2, height, 0, -10, width, height*2,
-                          width/2, height, 15);
+                          width, height, 14);
+  zyPhysics = new Physics(this, width, height, 0, -10, width*2, height*2,
+                          width, height, 14);
   // this overrides the debug render of the physics engine
   // with the method myCustomRenderer
   // comment out to use the debug renderer 
@@ -53,13 +53,13 @@ void setup() {
   // set up the objects
   // Rect parameters are the top left 
   // and bottom right corners
-  xzBall = xzPhysics.createRect(width/2 - ballSize*10,
-                                height - ballSize*20,
-                                width/2 + ballSize*10,
+  xzBall = xzPhysics.createRect(width/2 - ballSize*7,
+                                height - ballSize*14,
+                                width/2 + ballSize*7,
                                 height);
-  zyBall = zyPhysics.createRect(15 - 7*ballSize,
-                                height - ballSize*15,
-                                15 + 7*ballSize,
+  zyBall = zyPhysics.createRect(0,
+                                height - ballSize*14,
+                                14*ballSize,
                                 height);
 
   maxim = new Maxim(this);
@@ -67,7 +67,6 @@ void setup() {
   crateSound = maxim.loadFile("crate2.wav");
   crateSound.setLooping(false);
   crateSound.volume(1);
-
 }
 
 void draw() {
@@ -81,24 +80,40 @@ void draw() {
   Vec2 zyPos = zyPhysics.worldToScreen(zyBall.getWorldCenter());
 
   pushMatrix();
-  translate(xzPos.x, zyPos.y - 200, xzPos.y - 400);
-  image(crateImage, 0, 0, crateSize, crateSize);
+  translate(xzPos.x, height/2 + 14*2.25 - height + zyPos.y, 
+            545 - zyPos.x);
+  rotateX(radians(zyPhysics.getAngle(zyBall)));
+  rotateY(radians(xzPhysics.getAngle(xzBall)));
+  box(7);
   popMatrix();
 
 
   fill(0);
   text("Score: " + score, 20, 20);
+  if ((zyBall.isSleeping() && zyPos.x > 50) || xzPos.y < .05*width) {
+    xzPhysics.removeBody(xzBall);
+    zyPhysics.removeBody(zyBall);
+    xzBall = xzPhysics.createRect(width/2 - ballSize*7,
+                                  height - ballSize*14,
+                                  width/2 + ballSize*7,
+                                  height);
+    zyBall = zyPhysics.createRect(0,
+                                  height - ballSize*14,
+                                  14*ballSize,
+                                  height);
+  }
 }
 
 // when we release the mouse, apply an impulse based 
 // on the distance from the droid to the catapult
 void mouseClicked()
 {
-  Vec2 xzImpact = xzBall.getWorldCenter().sub(new Vec2(0, crateSize/2));
-  xzBall.applyImpulse(new Vec2(0, 10), xzImpact);
+  Vec2 click = new Vec2(mouseX - width/2, mouseY - 590).mul(1.0/14);
+  Vec2 xzImpact = xzBall.getWorldCenter().sub(new Vec2(click.x, ballSize/2));
+  xzBall.applyImpulse(new Vec2(-click.x, 8), xzImpact);
 
-  Vec2 zyImpact = xzBall.getWorldCenter().sub(new Vec2(crateSize/2, -crateSize/4));
-  zyBall.applyImpulse(new Vec2(10, 0), zyImpact);
+  Vec2 zyImpact = xzBall.getWorldCenter().sub(new Vec2(ballSize/2, -click.y));
+  zyBall.applyImpulse(new Vec2(8, click.y), zyImpact);
 }
 
 // this function renders the physics scene.
