@@ -30,6 +30,7 @@ PImage crateImage;
 int score = 0;
 boolean kicked = false;
 boolean scored = false;
+boolean debug = false;
 
 void setup() {
   size(700, 700, P3D);
@@ -47,6 +48,9 @@ void setup() {
   xzPhysics.setDensity(10.0);
   zyPhysics.setDensity(10.0);
 
+  xzPhysics.setCustomRenderingMethod(this, "noop");
+  zyPhysics.setCustomRenderingMethod(this, "noop");
+
   // set up the objects
   // Rect parameters are the top left 
   // and bottom right corners
@@ -58,6 +62,7 @@ void setup() {
                                 height - ballSize*14,
                                 14*ballSize,
                                 height);
+  
 
   maxim = new Maxim(this);
 
@@ -70,6 +75,20 @@ void setup() {
 
   jeerSound = maxim.loadFile("124996__phmiller42__aww.wav");
   jeerSound.setLooping(false);
+}
+
+void noop(World world) {}
+void keyPressed() {
+  if (key == '\n') {
+    debug = !debug;
+  }
+  if (debug) {
+    xzPhysics.setCustomRenderingMethod(this, "noop");
+    zyPhysics.setCustomRenderingMethod(this, "noop");
+  } else {
+    xzPhysics.unsetCustomRenderingMethod();
+    zyPhysics.unsetCustomRenderingMethod();
+  }
 }
 
 void draw() {
