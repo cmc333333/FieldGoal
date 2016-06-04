@@ -31,3 +31,16 @@ programming language geared at visual arts. Download it and unzip; open the
 Next, clone this repository into a folder named "FieldGoal". Then, through
 Processing's UI, select "File > Open" and navigate to the "FieldGoal.pde"
 file. Once this is loaded, click the "Play" button.
+
+## Running (Docker)
+If you have [docker](http://docker.io/) installed (and are running a Linux
+host), you can use the pre-built image, so long as you also connect relevant
+audio/video:
+
+```
+docker run -it --rm \
+-e DISPLAY=$DISPLAY \
+-v /tmp/.X11-unix:/tmp/.X11-unix \
+--device /dev/snd \
+cmc333333/fieldgoal
+```
